@@ -1,6 +1,5 @@
 from django.shortcuts import render
 
-from djangoproject import tweet
 from .models import Tweet
 from .forms import TweetForm
 from django.shortcuts import get_object_or_404,redirect
@@ -41,7 +40,7 @@ def tweet_edit(request,tweet_id):
     return render(request, 'tweet_form.html', {'form': form})
 
 def tweet_delete(request,tweet_id):
-    get_object_or_404(Tweet,pk=tweet_id,user=request.user)
+    tweet = get_object_or_404(Tweet, pk=tweet_id, user=request.user)
     if request.method == 'POST':
         tweet.delete()
         return redirect('tweet_list')
