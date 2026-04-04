@@ -10,6 +10,36 @@
         Django Project
         {% endblock %}
     </title>
+    <style>
+        .search-container {
+            position: relative;
+            width: 100%;
+        }
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .suggestions-dropdown.show {
+            display: block;
+        }
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #333;
+        }
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
 </head>
 <body class="bg-dark" data-bs-theme="dark">
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -21,30 +51,26 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="#">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Dropdown
-          </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Action</a></li>
-            <li><a class="dropdown-item" href="#">Another action</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Something else here</a></li>
-          </ul>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+          <a class="nav-link active" aria-current="page" href="{% url 'tweet_list' %}">Home</a>
         </li>
       </ul>
-      <form class="d-flex" role="search">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
-        <button class="btn btn-outline-success" type="submit">Search</button>
+      <div class="search-container me-3" style="width: 300px;">
+        <form class="d-flex" role="search" id="searchForm">
+          <input class="form-control me-2" type="search" id="searchInput" placeholder="Search tweets..." aria-label="Search"/>
+          <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+        <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
+      </div>
+      <a href="{% url 'tweet_list' %}" class="btn btn-primary mx-2">My Tweets</a>
+      {% if user.is_authenticated %}
+      <form  method="post" action="{% url  'logout'%}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Logout</button>
       </form>
+      {%else%}
+      <a href="{% url 'register' %}" class="btn btn-primary mx-2">Register</a>
+      <a href="{% url 'login' %}" class="btn btn-success">Login</a>
+      {% endif %}
     </div>
   </div>
 </nav>
@@ -53,5 +79,56 @@
         {% endblock %}
     </div>
 
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+        const searchForm = document.getElementById('searchForm');
+
+        searchInput.addEventListener('input', async function() {
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                suggestionsDropdown.classList.remove('show');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/tweet/api/suggestions/?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.suggestions.length > 0) {
+                    suggestionsDropdown.innerHTML = data.suggestions.map(suggestion => 
+                        `<div class="suggestion-item" onclick="selectSuggestion('${suggestion.replace(/'/g, "\\'")}')">${suggestion}</div>`
+                    ).join('');
+                    suggestionsDropdown.classList.add('show');
+                } else {
+                    suggestionsDropdown.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+            }
+        });
+
+        function selectSuggestion(suggestion) {
+            searchInput.value = suggestion;
+            suggestionsDropdown.classList.remove('show');
+            searchForm.submit();
+        }
+
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query) {
+                window.location.href = `/tweet/search/?q=${encodeURIComponent(query)}`;
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-container')) {
+                suggestionsDropdown.classList.remove('show');
+            }
+        });
+    </script>
 </body>
 </html>

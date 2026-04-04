@@ -1,8 +1,12 @@
 from django.shortcuts import render
 
 from .models import Tweet
-from .forms import TweetForm
+from .forms import TweetForm,UserRegistrationForm
 from django.shortcuts import get_object_or_404,redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login
+from django.http import JsonResponse
+from django.db.models import Q
 # Create your views here.
 
 def index(request):
@@ -13,6 +17,30 @@ def tweet_list(request):
     tweets = Tweet.objects.all().order_by('-created_at')
     return render(request, 'tweet_list.html', {'tweets': tweets})
 
+def search_tweets(request):
+    query = request.GET.get('q', '').strip().lower()
+    tweets = []
+    if query:
+        tweets = Tweet.objects.filter(
+            Q(text__icontains=query) | Q(user__username__icontains=query)
+        ).order_by('-created_at')
+    return render(request, 'tweet/tweet_search.html', {'tweets': tweets, 'search_query': request.GET.get('q', '')})
+
+def search_suggestions(request):
+    query = request.GET.get('q', '').strip().lower()
+    suggestions = []
+    if query and len(query) >= 2:
+        # Get tweet text suggestions
+        tweets = Tweet.objects.filter(text__icontains=query).values_list('text', flat=True).distinct()[:5]
+        suggestions.extend(list(tweets))
+        
+        # Get username suggestions
+        users = Tweet.objects.filter(user__username__icontains=query).values_list('user__username', flat=True).distinct()[:5]
+        suggestions.extend(list(users))
+    
+    return JsonResponse({'suggestions': suggestions})
+
+@login_required
 def tweet_create(request):
     if request.method == 'POST':
         form= TweetForm(request.POST, request.FILES)
@@ -24,7 +52,7 @@ def tweet_create(request):
     else:
         form = TweetForm()
     return render(request, 'tweet_form.html', {'form': form})
-
+@login_required
 def tweet_edit(request,tweet_id):
     tweet=get_object_or_404(Tweet,pk=tweet_id,user=request.user)
     if request.method == 'POST':
@@ -38,10 +66,26 @@ def tweet_edit(request,tweet_id):
     else:
         form = TweetForm(instance=tweet)
     return render(request, 'tweet_form.html', {'form': form})
-
+@login_required
 def tweet_delete(request,tweet_id):
     tweet = get_object_or_404(Tweet, pk=tweet_id, user=request.user)
     if request.method == 'POST':
         tweet.delete()
         return redirect('tweet_list')
     return render(request, 'tweet_confirm_delete.html', {'tweet': tweet})
+
+def register(request):
+    if request.method == 'POST':
+        form=UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user=form.save(commit=False)
+            user.set_password(form.cleaned_data['password1'])
+            user.save()
+            login(request, user)
+            return redirect('tweet_list')
+    else:
+        form=UserRegistrationForm()
+    
+    return render(request, 'registration/register.html', {'form': form})
+
+
