@@ -1,20 +1,195 @@
 {% extends 'layout.html' %}
 
 {% block title %}
-tweet
+{% if form.instance.pk %}Edit Tweet{% else %}Compose Tweet{% endif %} / X
 {% endblock %}
 
 {% block content %}
-<h1 class="text-center mt-4">Welcome to the Tweet App!</h1>
-<h2>
-    {% if form.instance.pk %}Edit Tweet{% else %}Create Tweet{% endif %}
-    <form  method="post" enctype="multipart/form-data" class="from">
-        {% csrf_token %}
-        {{ form }}
-        <button class="btn btn-warning" type="submit">Post</button>
-    </form>
-<a href="{% url 'tweet_list' %}">Back to Tweets</a>
-</h2>
-<p>This is the home page of the Tweet app.</p>
+<style>
+    :root {
+        --primary-color: #1DA1F2;
+        --primary-dark: #1a8cd8;
+        --dark-bg: #000;
+        --card-bg: #16181c;
+        --border-color: #38444d;
+        --text-secondary: #71767b;
+        --text-primary: #e1e8ed;
+    }
+</style>
+
+<!-- Feed Header -->
+<div class="feed-header">
+    <div style="display: flex; align-items: center; gap: 16px; width: 100%;">
+        <a href="{% url 'tweet_list' %}" style="color: var(--primary-color); text-decoration: none; cursor: pointer; font-size: 20px;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="feed-title">
+            {% if form.instance.pk %}Edit Tweet{% else %}Compose Tweet{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Compose Tweet Form -->
+<div class="compose-area" style="border-bottom: none; padding: 20px;">
+    <div class="compose-header">
+        <div class="compose-avatar">
+            {{ user.username|first|upper }}
+        </div>
+        <div class="compose-body">
+            <form method="post" enctype="multipart/form-data" style="width: 100%;">
+                {% csrf_token %}
+                
+                <!-- Tweet Text -->
+                <div style="margin-bottom: 20px;">
+                    <textarea 
+                        name="text" 
+                        class="compose-textarea" 
+                        placeholder="What's happening!?" 
+                        rows="6"
+                        style="font-size: 24px; border: none; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);"
+                    >{{ form.instance.text }}</textarea>
+                    
+                    {% if form.text.errors %}
+                    <div style="background-color: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; color: #ff6b6b; font-size: 14px;">
+                        {% for error in form.text.errors %}
+                        <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Image Upload -->
+                <div style="margin-bottom: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                    <label for="id_photo" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--primary-color); font-size: 16px; margin-bottom: 12px;">
+                        <i class="fas fa-image"></i>
+                        <span>Add image</span>
+                    </label>
+                    <input 
+                        type="file" 
+                        name="photo" 
+                        id="id_photo"
+                        accept="image/*"
+                        style="display: none;"
+                        onchange="updateImagePreview()"
+                    />
+                    
+                    <!-- Image Preview -->
+                    <div id="imagePreview" style="margin-top: 16px;"></div>
+                    
+                    {% if form.instance.photo %}
+                    <div style="margin-top: 16px;">
+                        <div style="position: relative; display: inline-block;">
+                            <img src="{{ form.instance.photo.url }}" style="border-radius: 12px; max-width: 300px; max-height: 300px;">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="removeImage()" style="position: absolute; top: 8px; right: 8px;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <label style="display: block; margin-top: 12px;">
+                        <input type="checkbox" name="photo-clear" value="on"> Remove image
+                    </label>
+                    {% endif %}
+                    
+                    {% if form.photo.errors %}
+                    <div style="background-color: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 12px; padding: 12px 16px; margin-top: 12px; color: #ff6b6b; font-size: 14px;">
+                        {% for error in form.photo.errors %}
+                        <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="compose-toolbar" style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px; justify-content: space-between;">
+                    <div style="display: flex; gap: 12px;">
+                        <button type="button" class="icon-btn" title="Add emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button type="button" class="icon-btn" title="Poll">
+                            <i class="fas fa-chart-bar"></i>
+                        </button>
+                        <button type="button" class="icon-btn" title="Schedule">
+                            <i class="fas fa-calendar"></i>
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px;">
+                        <a href="{% url 'tweet_list' %}" class="btn btn-outline-secondary" style="border-color: var(--primary-color); color: var(--primary-color); border-radius: 20px;">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="compose-submit" style="padding: 10px 32px;">
+                            <i class="fas fa-paper-plane"></i> 
+                            {% if form.instance.pk %}Update{% else %}Post{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Character Counter (Optional) -->
+<div style="padding: 16px 20px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 14px; text-align: right;">
+    <span id="charCount">0</span> / 280 characters
+</div>
+
+<script>
+    // Update character count
+    const textarea = document.querySelector('textarea[name="text"]');
+    const charCount = document.getElementById('charCount');
+    
+    function updateCharCount() {
+        charCount.textContent = textarea.value.length;
+    }
+    
+    textarea.addEventListener('input', updateCharCount);
+    updateCharCount();
+
+    // Image Preview
+    function updateImagePreview() {
+        const fileInput = document.getElementById('id_photo');
+        const preview = document.getElementById('imagePreview');
+        
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `
+                    <div style="position: relative; display: inline-block;">
+                        <img src="${e.target.result}" style="border-radius: 12px; max-width: 300px; max-height: 300px;">
+                        <button type="button" class="btn btn-sm btn-danger" onclick="clearImage()" style="position: absolute; top: 8px; right: 8px;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+    }
+
+    function clearImage() {
+        document.getElementById('id_photo').value = '';
+        document.getElementById('imagePreview').innerHTML = '';
+    }
+
+    function removeImage() {
+        clearImage();
+    }
+</script>
+
+<style>
+    textarea {
+        line-height: 1.5 !important;
+    }
+
+    .btn-outline-secondary {
+        background-color: transparent !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+</style>
 {% endblock %}
 

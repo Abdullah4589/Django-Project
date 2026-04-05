@@ -4,81 +4,676 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>
         {% block title %}
-        Django Project
+        X - Share Your Tweets
         {% endblock %}
     </title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1DA1F2;
+            --primary-dark: #1a8cd8;
+            --dark-bg: #000;
+            --card-bg: #16181c;
+            --border-color: #38444d;
+            --text-secondary: #71767b;
+            --text-primary: #e1e8ed;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            background-color: var(--dark-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+        }
+
+        .nav-menu {
+            list-style: none;
+            margin-bottom: auto;
+        }
+
+        .nav-item {
+            margin-bottom: 16px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            border-radius: 30px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 20px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(29, 161, 242, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-link.active {
+            color: var(--primary-color);
+        }
+
+        .tweet-button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .tweet-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Main Feed */
+        .feed-container {
+            flex: 1;
+            margin-left: 280px;
+            display: flex;
+            max-width: 600px;
+        }
+
+        .feed-wrapper {
+            width: 100%;
+            max-width: 600px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* Feed Header */
+        .feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            background-color: rgba(0, 0, 0, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .feed-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Tweet Cards */
+        .tweet-card {
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 20px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .tweet-card:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .tweet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .tweet-author {
+            display: flex;
+            gap: 12px;
+        }
+
+        .tweet-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #1991da);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .tweet-info {
+            flex: 1;
+        }
+
+        .tweet-username {
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .tweet-username:hover {
+            text-decoration: underline;
+        }
+
+        .tweet-handle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .tweet-time {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .tweet-content {
+            margin-left: 60px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .tweet-image {
+            margin-left: 60px;
+            margin-right: 0;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            width: auto;
+            max-width: calc(100% - 60px);
+            max-height: 400px;
+            display: block;
+        }
+
+        .tweet-actions {
+            display: flex;
+            justify-content: space-around;
+            margin-left: 60px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: rgba(29, 161, 242, 0.1);
+            color: var(--primary-color);
+        }
+
+        .action-btn.delete:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        /* Compose Area */
+        .compose-area {
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 20px;
+        }
+
+        .compose-header {
+            display: flex;
+            gap: 16px;
+        }
+
+        .compose-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #1991da);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .compose-body {
+            flex: 1;
+        }
+
+        .compose-textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            margin-bottom: 16px;
+        }
+
+        .compose-textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .compose-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 18px;
+            transition: opacity 0.2s;
+        }
+
+        .icon-btn:hover {
+            opacity: 0.8;
+        }
+
+        .compose-submit {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .compose-submit:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .compose-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Right Sidebar (optional - can be added) */
+        .right-sidebar {
+            width: 300px;
+            border-left: 1px solid var(--border-color);
+            padding: 16px;
+            display: none;
+        }
+
+        .search-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .search-box::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                padding: 8px;
+            }
+
+            .nav-link span {
+                display: none;
+            }
+
+            .feed-container {
+                margin-left: 70px;
+            }
+
+            .tweet-button {
+                width: 50px;
+                height: 50px;
+                padding: 0;
+                border-radius: 50%;
+                font-size: 20px;
+            }
+
+            .right-sidebar {
+                display: none;
+            }
+        }
+
         .search-container {
             position: relative;
             width: 100%;
         }
+
         .suggestions-dropdown {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
-            background: white;
-            border: 1px solid #ddd;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-top: none;
             max-height: 300px;
             overflow-y: auto;
             z-index: 1000;
             display: none;
+            border-radius: 0 0 12px 12px;
         }
+
         .suggestions-dropdown.show {
             display: block;
         }
+
         .suggestion-item {
-            padding: 8px 12px;
+            padding: 12px 16px;
             cursor: pointer;
-            color: #333;
+            color: var(--text-primary);
+            transition: background-color 0.2s;
         }
+
         .suggestion-item:hover {
-            background-color: #f0f0f0;
+            background-color: rgba(29, 161, 242, 0.1);
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0077b6 100%);
+        }
+
+        .auth-card {
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .auth-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .error-message {
+            color: #f4212e;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .auth-button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 24px;
+        }
+
+        .auth-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .auth-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .auth-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Utility Classes */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .user-profile-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            margin-top: auto;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .user-info:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #1991da);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .user-handle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </head>
-<body class="bg-dark" data-bs-theme="dark">
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">X(FormerlyTwitter)</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'tweet_list' %}">Home</a>
-        </li>
-      </ul>
-      <div class="search-container me-3" style="width: 300px;">
-        <form class="d-flex" role="search" id="searchForm">
-          <input class="form-control me-2" type="search" id="searchInput" placeholder="Search tweets..." aria-label="Search"/>
-          <button class="btn btn-outline-success" type="submit">Search</button>
-        </form>
-        <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
-      </div>
-      <a href="{% url 'tweet_list' %}" class="btn btn-primary mx-2">My Tweets</a>
-      {% if user.is_authenticated %}
-      <form  method="post" action="{% url  'logout'%}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Logout</button>
-      </form>
-      {%else%}
-      <a href="{% url 'register' %}" class="btn btn-primary mx-2">Register</a>
-      <a href="{% url 'login' %}" class="btn btn-success">Login</a>
-      {% endif %}
-    </div>
-  </div>
-</nav>
-    <div class="container">
-        {% block content %}
-        {% endblock %}
+<body>
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-feather"></i>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item" style="margin-bottom: 24px;">
+                    <div class="search-container">
+                        <form class="d-flex" role="search" id="searchForm">
+                            <div style="width: 100%; position: relative;">
+                                <input class="form-control search-box" type="search" id="searchInput" placeholder="Search tweets..." style="width: 100%; margin-bottom: 0;"/>
+                                <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
+                            </div>
+                        </form>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'index' %}" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'search_tweets' %}" class="nav-link">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <span>Explore</span>
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a href="{% url 'tweet_list' %}" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Feed</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            {% if user.is_authenticated %}
+            <a href="{% url 'tweet_create' %}" class="tweet-button">
+                <i class="fas fa-feather" style="margin-right: 8px;"></i>Post
+            </a>
+
+            <div class="user-profile-section">
+                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="user-profile-section">
+                <a href="{% url 'login' %}" class="btn btn-primary btn-sm w-100 mb-2">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+                <a href="{% url 'register' %}" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="fas fa-user-plus"></i> Register
+                </a>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- Main Feed -->
+        <div class="feed-container">
+            <div class="feed-wrapper">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const searchInput = document.getElementById('searchInput');
         const suggestionsDropdown = document.getElementById('suggestionsDropdown');

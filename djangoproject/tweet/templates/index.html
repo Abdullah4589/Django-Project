@@ -1,11 +1,158 @@
 {% extends 'layout.html' %}
 
 {% block title %}
-tweet
+Home - X
 {% endblock %}
 
 {% block content %}
-<h1 class="text-center mt-4">Welcome to the Tweet App!</h1>
-<p>This is the home page of the Tweet app.</p>
+<style>
+    :root {
+        --primary-color: #1DA1F2;
+        --primary-dark: #1a8cd8;
+        --dark-bg: #000;
+        --card-bg: #16181c;
+        --border-color: #38444d;
+        --text-secondary: #71767b;
+        --text-primary: #e1e8ed;
+    }
+</style>
+
+<!-- Feed Header -->
+<div class="feed-header">
+    <div class="feed-title">
+        <i class="fas fa-home"></i> Welcome to X
+    </div>
+</div>
+
+<!-- Welcome Section -->
+<div style="padding: 60px 40px; text-align: center; border-bottom: 1px solid var(--border-color);">
+    <div style="font-size: 72px; margin-bottom: 24px;">
+        <i class="fas fa-feather" style="color: var(--primary-color);"></i>
+    </div>
+    
+    <h1 style="font-size: 48px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">
+        Welcome to X
+    </h1>
+    
+    <p style="font-size: 20px; color: var(--text-secondary); margin-bottom: 40px; line-height: 1.5;">
+        Share your thoughts, connect with others, and discover what's trending in your world.
+    </p>
+
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        {% if user.is_authenticated %}
+        <a href="{% url 'tweet_list' %}" class="btn btn-lg" style="background-color: var(--primary-color); color: white; border-radius: 24px; padding: 12px 48px; font-weight: 700; text-decoration: none; transition: all 0.2s;">
+            <i class="fas fa-arrow-right"></i> Go to Feed
+        </a>
+        <a href="{% url 'tweet_create' %}" class="btn btn-lg" style="background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); border-radius: 24px; padding: 10px 48px; font-weight: 700; text-decoration: none; transition: all 0.2s;">
+            <i class="fas fa-feather"></i> Create Tweet
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}" class="btn btn-lg" style="background-color: var(--primary-color); color: white; border-radius: 24px; padding: 12px 48px; font-weight: 700; text-decoration: none; transition: all 0.2s;">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <a href="{% url 'register' %}" class="btn btn-lg" style="background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); border-radius: 24px; padding: 10px 48px; font-weight: 700; text-decoration: none; transition: all 0.2s;">
+            <i class="fas fa-user-plus"></i> Create Account
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Features Section -->
+<div style="padding: 60px 40px;">
+    <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 40px; color: var(--text-primary);">Features</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
+        <!-- Feature 1 -->
+        <div style="border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; transition: all 0.2s;">
+            <div style="font-size: 32px; margin-bottom: 16px; color: var(--primary-color);">
+                <i class="fas fa-message"></i>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+                Share Your Thoughts
+            </h3>
+            <p style="color: var(--text-secondary); line-height: 1.5;">
+                Post tweets up to 280 characters and express yourself to the world.
+            </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div style="border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; transition: all 0.2s;">
+            <div style="font-size: 32px; margin-bottom: 16px; color: var(--primary-color);">
+                <i class="fas fa-image"></i>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+                Share Images
+            </h3>
+            <p style="color: var(--text-secondary); line-height: 1.5;">
+                Add images to your tweets to make them more engaging and visual.
+            </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div style="border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; transition: all 0.2s;">
+            <div style="font-size: 32px; margin-bottom: 16px; color: var(--primary-color);">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+                Explore & Search
+            </h3>
+            <p style="color: var(--text-secondary); line-height: 1.5;">
+                Discover new tweets and search for topics that interest you.
+            </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div style="border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; transition: all 0.2s;">
+            <div style="font-size: 32px; margin-bottom: 16px; color: var(--primary-color);">
+                <i class="fas fa-edit"></i>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+                Edit & Delete
+            </h3>
+            <p style="color: var(--text-secondary); line-height: 1.5;">
+                Full control over your tweets - edit or delete them anytime.
+            </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div style="border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; transition: all 0.2s;">
+            <div style="font-size: 32px; margin-bottom: 16px; color: var(--primary-color);">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+                Secure & Private
+            </h3>
+            <p style="color: var(--text-secondary); line-height: 1.5;">
+                Your data is safe and secure with password protection.
+            </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div style="border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; transition: all 0.2s;">
+            <div style="font-size: 32px; margin-bottom: 16px; color: var(--primary-color);">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+                Responsive Design
+            </h3>
+            <p style="color: var(--text-secondary); line-height: 1.5;">
+                Use X on any device - desktop, tablet, or mobile.
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(29, 161, 242, 0.3);
+    }
+
+    [style*="border-radius: 16px"]:hover {
+        border-color: var(--primary-color);
+        background-color: rgba(29, 161, 242, 0.05);
+        transform: translateY(-4px);
+    }
+</style>
 {% endblock %}
 
